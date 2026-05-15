@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>내 은퇴라이프 설계 대시보드</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>내 은퇴라이프 설계 대시보드</h1>
+      <p>통합연금포털 조회값을 기준으로 은퇴자금, 소득공백, 추가저축액을 직접 조정합니다.</p>
+      <div class="header-actions">
+        <button id="saveState" class="button">저장</button>
+        <button id="resetState" class="button secondary">초기화</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <section class="section">
+          <h2>정밀 입력</h2>
+          <div class="input-grid">
+            <label class="field"><span>출생연도</span><input id="birthYear" type="number" /></label>
+            <label class="field"><span>현재 나이</span><input id="currentAge" type="number" /></label>
+            <label class="field"><span>현재연도</span><input id="currentYear" type="number" /></label>
+            <label class="field"><span>은퇴 목표 나이</span><input id="retirementAge" type="number" /></label>
+            <label class="field"><span>국민연금 개시 나이</span><input id="publicPensionAge" type="number" /></label>
+            <label class="field"><span>설계 종료 나이</span><input id="planUntilAge" type="number" /></label>
+            <label class="field"><span>월 생활비 목표</span><input id="monthlyLivingCost" type="number" step="10000" /></label>
+            <label class="field"><span>실질 기대수익률(연 %)</span><input id="annualRealReturn" type="number" step="0.1" /></label>
+            <label class="field"><span>월 추가저축</span><input id="monthlyAdditionalSaving" type="number" step="10000" /></label>
+            <label class="field"><span>국민연금 예상액(월)</span><input id="nationalPensionMonthly" type="number" step="1000" /></label>
+            <label class="field"><span>DC/IRP 현재 적립금</span><input id="dcIrpBalance" type="number" step="10000" /></label>
+            <label class="field"><span>개인연금 현재 적립금</span><input id="personalPensionBalance" type="number" step="10000" /></label>
+            <label class="field"><span>비상예비비 목표 개월</span><input id="emergencyFundMonths" type="number" /></label>
+          </div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="section kpi-grid">
+          <article class="card"><span>현재 나이</span><strong id="currentAge"></strong><small>출생연도 기준</small></article>
+          <article class="card"><span>은퇴까지</span><strong id="yearsToRetire"></strong><small>추가 적립 가능 기간</small></article>
+          <article class="card"><span>현재 연금자산</span><strong id="currentBalance"></strong><small>DC/IRP + 개인연금</small></article>
+          <article class="card good"><span>필요 추가저축</span><strong id="monthlyNeed"></strong><small>월 기준</small></article>
+        </section>
+
+        <section class="section kpi-grid">
+          <article class="card"><span>60~65세 공백자금</span><strong id="bridgeNeed"></strong></article>
+          <article class="card"><span>65세 이후 월 부족액</span><strong id="afterPensionGap"></strong></article>
+          <article class="card"><span>은퇴시점 필요자금</span><strong id="retireNeed"></strong></article>
+          <article class="card"><span>현재 저축 반영 전망</span><strong id="projectedBalance"></strong><small id="surplus"></small></article>
+        </section>
+
+        <section class="section">
+          <h2>시나리오 비교</h2>
+          <div id="scenarioCards" class="scenario-grid"></div>
+        </section>
+
+        <section class="section chart-grid">
+          <article class="chart-panel">
+            <h3>자산 축적 전망</h3>
+            <canvas id="assetChart"></canvas>
+          </article>
+          <article class="chart-panel">
+            <h3>필요자금 구성</h3>
+            <canvas id="needChart"></canvas>
+          </article>
+        </section>
+
+        <section class="section">
+          <h2>연금 계좌 내역</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>금융회사</th>
+                  <th>유형</th>
+                  <th>상품</th>
+                  <th>가입일</th>
+                  <th>연금개시 예정</th>
+                  <th>적립금</th>
+                  <th>조회기준일</th>
+                </tr>
+              </thead>
+              <tbody id="accountsBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2>실행 칸반</h2>
+          <div id="kanban" class="kanban"></div>
+        </section>
+
+        <section class="section markdown-panel">
+          <h2>Markdown 보고서 미리보기</h2>
+          <button id="copyMarkdown" class="button secondary">Markdown 복사</button>
+          <textarea id="markdownPreview" readonly></textarea>
+        </section>
+      </main>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
