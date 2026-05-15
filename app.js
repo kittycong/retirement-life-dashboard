@@ -105,6 +105,13 @@ function setText(id, value) {
   document.getElementById(id).textContent = value;
 }
 
+function setStatus(message, type = "info") {
+  const status = document.getElementById("sheetStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.dataset.state = type;
+}
+
 function updateInputs() {
   for (const id of fields) {
     const input = document.getElementById(id);
@@ -373,6 +380,86 @@ function render() {
   document.getElementById("markdownPreview").value = exportMarkdown(result);
 }
 
+function buildSheetPayload() {
+  readInputs();
+  const result = calculate();
+  return {
+    updatedAt: new Date().toISOString(),
+    person: state.person,
+    assumptions: state.assumptions,
+    pensions: state.pensions,
+    accounts: state.accounts,
+    scenarios: state.scenarios,
+    summary: {
+      currentAge: result.ageNow,
+      yearsToRetire: result.yearsToRetire,
+      currentBalance: result.currentBalance,
+      monthlyNeed: Math.round(result.monthlyNeed),
+      bridgeNeedAtRetire: Math.round(result.bridgeNeedAtRetire),
+      monthlyGapAfterPension: Math.round(result.monthlyGapAfterPension),
+      needAtRetire: Math.round(result.needAtRetire),
+      projectedWithSaving: Math.round(result.projectedWithSaving),
+      surplusAtRetire: Math.round(result.surplusAtRetire)
+    }
+  };
+}
+
+function applySheetPayload(payload) {
+  if (!payload || typeof payload !== "object") return;
+  Object.assign(state.person, payload.person || {});
+  Object.assign(state.assumptions, payload.assumptions || {});
+  Object.assign(state.pensions, payload.pensions || {});
+  if (Array.isArray(payload.accounts)) state.accounts = payload.accounts;
+  if (Array.isArray(payload.scenarios)) state.scenarios = payload.scenarios;
+  updateInputs();
+  render();
+}
+
+function endpointValue() {
+  return document.getElementById("sheetEndpoint").value.trim();
+}
+
+async function saveToSheet() {
+  const endpoint = endpointValue();
+  if (!endpoint) {
+    setStatus("Apps Script 웹앱 URL을 먼저 입력하세요.", "error");
+    return;
+  }
+  setStatus("Google Sheet에 저장 중입니다...", "loading");
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "save", payload: buildSheetPayload() })
+    });
+    const data = await response.json();
+    if (!response.ok || data.ok === false) throw new Error(data.error || "저장 실패");
+    localStorage.setItem("retirementPlannerSheetEndpoint", endpoint);
+    setStatus(`저장 완료: ${data.updatedAt || "방금"}`, "ok");
+  } catch (error) {
+    setStatus(`저장 실패: ${error.message}`, "error");
+  }
+}
+
+async function loadFromSheet() {
+  const endpoint = endpointValue();
+  if (!endpoint) {
+    setStatus("Apps Script 웹앱 URL을 먼저 입력하세요.", "error");
+    return;
+  }
+  setStatus("Google Sheet에서 불러오는 중입니다...", "loading");
+  try {
+    const response = await fetch(`${endpoint}?action=load&ts=${Date.now()}`);
+    const data = await response.json();
+    if (!response.ok || data.ok === false) throw new Error(data.error || "불러오기 실패");
+    applySheetPayload(data.payload);
+    localStorage.setItem("retirementPlannerSheetEndpoint", endpoint);
+    setStatus(`불러오기 완료: ${data.updatedAt || "최신값"}`, "ok");
+  } catch (error) {
+    setStatus(`불러오기 실패: ${error.message}`, "error");
+  }
+}
+
 function saveLocal() {
   localStorage.setItem("retirementPlanner", JSON.stringify(state));
   document.getElementById("saveState").textContent = "저장됨";
@@ -393,8 +480,12 @@ function loadLocal() {
 document.addEventListener("DOMContentLoaded", () => {
   loadLocal();
   updateInputs();
+  document.getElementById("sheetEndpoint").value =
+    localStorage.getItem("retirementPlannerSheetEndpoint") || "";
   document.querySelectorAll("input").forEach((input) => input.addEventListener("input", render));
   document.getElementById("saveState").addEventListener("click", saveLocal);
+  document.getElementById("saveSheet").addEventListener("click", saveToSheet);
+  document.getElementById("loadSheet").addEventListener("click", loadFromSheet);
   document.getElementById("resetState").addEventListener("click", () => {
     localStorage.removeItem("retirementPlanner");
     location.reload();

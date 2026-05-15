@@ -358,6 +358,32 @@ th {
   gap: var(--space-2);
 }
 
+.sheet-sync {
+  border-top: 1px solid var(--color-border-muted);
+  padding-top: var(--space-4);
+}
+
+.sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.sync-status {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.sync-status[data-state="ok"] {
+  color: var(--color-accent-positive);
+}
+
+.sync-status[data-state="error"] {
+  color: var(--color-accent-warn);
+}
+
 textarea {
   min-height: 260px;
   resize: vertical;
@@ -392,6 +418,7 @@ textarea {
   }
 
   .header-actions,
+  .sheet-actions,
   .kpi-grid,
   .scenario-grid,
   .chart-grid,
