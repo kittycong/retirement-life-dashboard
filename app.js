@@ -208,6 +208,7 @@ function renderKanban(result) {
 
 function drawLineChart(canvas, labels, series) {
   const ctx = canvas.getContext("2d");
+  const tokens = getComputedStyle(document.documentElement);
   const ratio = window.devicePixelRatio || 1;
   const width = canvas.clientWidth * ratio;
   const height = canvas.clientHeight * ratio;
@@ -217,12 +218,16 @@ function drawLineChart(canvas, labels, series) {
   const pad = 48 * ratio;
   const max = Math.max(...series.flatMap((s) => s.values), 1);
   const min = Math.min(...series.flatMap((s) => s.values), 0);
-  const colors = ["#1d4ed8", "#0f766e", "#b45309"];
+  const colors = [
+    tokens.getPropertyValue("--color-accent-info").trim(),
+    tokens.getPropertyValue("--color-accent-positive").trim(),
+    tokens.getPropertyValue("--color-accent-warn").trim()
+  ];
 
-  ctx.strokeStyle = "#d9e0e8";
+  ctx.strokeStyle = tokens.getPropertyValue("--color-border-muted").trim();
   ctx.lineWidth = 1 * ratio;
   ctx.font = `${12 * ratio}px Arial`;
-  ctx.fillStyle = "#607083";
+  ctx.fillStyle = tokens.getPropertyValue("--color-text-secondary").trim();
   for (let i = 0; i <= 4; i++) {
     const y = pad + ((height - pad * 1.7) * i) / 4;
     ctx.beginPath();
@@ -248,7 +253,7 @@ function drawLineChart(canvas, labels, series) {
     ctx.fillText(s.name, width - 180 * ratio, (26 + idx * 22) * ratio);
   });
 
-  ctx.fillStyle = "#607083";
+  ctx.fillStyle = tokens.getPropertyValue("--color-text-secondary").trim();
   labels.forEach((label, i) => {
     if (i % Math.ceil(labels.length / 6) !== 0 && i !== labels.length - 1) return;
     const x = pad + ((width - pad * 1.6) * i) / Math.max(1, labels.length - 1);
@@ -258,6 +263,7 @@ function drawLineChart(canvas, labels, series) {
 
 function drawBarChart(canvas, values) {
   const ctx = canvas.getContext("2d");
+  const tokens = getComputedStyle(document.documentElement);
   const ratio = window.devicePixelRatio || 1;
   const width = canvas.clientWidth * ratio;
   const height = canvas.clientHeight * ratio;
@@ -274,7 +280,7 @@ function drawBarChart(canvas, values) {
     const y = height - pad - h;
     ctx.fillStyle = item.color;
     ctx.fillRect(x, y, barW, h);
-    ctx.fillStyle = "#2c3642";
+    ctx.fillStyle = tokens.getPropertyValue("--color-text-primary").trim();
     ctx.fillText(item.label, x, height - 18 * ratio);
     ctx.fillText(manwon(item.value), x, y - 8 * ratio);
   });
@@ -303,9 +309,9 @@ function renderCharts(result) {
     { name: "필요자금", values: labels.map(() => result.needAtRetire) }
   ]);
   drawBarChart(document.getElementById("needChart"), [
-    { label: "60~65세", value: result.bridgeNeedAtRetire, color: "#1d4ed8" },
-    { label: "65세 이후", value: result.postPensionNeedAtRetire, color: "#0f766e" },
-    { label: "현재예상", value: result.projectedWithSaving, color: "#b45309" }
+    { label: "60~65세", value: result.bridgeNeedAtRetire, color: getComputedStyle(document.documentElement).getPropertyValue("--color-accent-info").trim() },
+    { label: "65세 이후", value: result.postPensionNeedAtRetire, color: getComputedStyle(document.documentElement).getPropertyValue("--color-accent-positive").trim() },
+    { label: "현재예상", value: result.projectedWithSaving, color: getComputedStyle(document.documentElement).getPropertyValue("--color-accent-warn").trim() }
   ]);
 }
 
@@ -351,7 +357,7 @@ ${state.accounts
 function render() {
   readInputs();
   const result = calculate();
-  setText("currentAge", `${result.ageNow}세`);
+  setText("currentAgeDisplay", `${result.ageNow}세`);
   setText("yearsToRetire", `${result.yearsToRetire}년`);
   setText("currentBalance", won(result.currentBalance));
   setText("monthlyNeed", won(result.monthlyNeed));
